@@ -1,4 +1,4 @@
-FROM opensuse:tumbleweed
+FROM alpine:latest
 MAINTAINER Fabian Neuschmidt fabian@neuschmidt.de
 
 # Set the locale
