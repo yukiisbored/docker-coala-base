@@ -1,81 +1,61 @@
-FROM alpine:latest
+FROM alpine:edge
 MAINTAINER Fabian Neuschmidt fabian@neuschmidt.de
 
 # Set the locale
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en PATH=$PATH:/root/pmd-bin-5.4.1/bin:/root/dart-sdk/bin
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en PATH=$PATH:/root/pmd-bin-5.4.1/bin:/root/dart-sdk/bin GOPATH=/root/go
 
-# Add packaged flawfinder
-RUN zypper addrepo http://download.opensuse.org/repositories/home:illuusio/openSUSE_Tumbleweed/home:illuusio.repo && \
-  # Add repos for suitesparse and luarocks
-  zypper addrepo http://download.opensuse.org/repositories/home:stecue/openSUSE_Tumbleweed/home:stecue.repo && \
-  zypper addrepo -f \
-    http://download.opensuse.org/repositories/devel:/languages:/lua/openSUSE_Factory/ \
-    devel:languages:lua && \
-  # Use Leap for nodejs
-  zypper addrepo http://download.opensuse.org/repositories/devel:languages:nodejs/openSUSE_Leap_42.2/devel:languages:nodejs.repo && \
-  # Add repo for rubygem-bundler
-  zypper addrepo http://download.opensuse.org/repositories/home:AtastaChloeD:ChiliProject/openSUSE_Factory/home:AtastaChloeD:ChiliProject.repo && \
-  # Package dependencies
-  zypper --no-gpg-checks --non-interactive dist-upgrade && \
-  zypper --non-interactive install -t pattern devel_basis && \
-  zypper --non-interactive install \
-    bzr \
+
+# Add testing branch, Update repositories, and Upgrade system
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && apk update --no-progress && apk upgrade --no-progress
+
+# Install packages
+RUN apk add --no-progress \
+    build-base \
     cppcheck \
     curl \
     espeak \
     expect \
     flawfinder \
-    gcc-c++ \
-    gcc-fortran \
+    g++ \
+    gfortran \
     git \
     go \
     gsl \
-    mercurial \
-    hlint \
     indent \
-    java \
-    java-1_8_0-openjdk-devel \
+    openjdk8 \
     julia \
-    libcholmod-3_0_6 \
-    libclang3_8 \
-    libcurl-devel \
-    libncurses5 \
-    libopenssl-devel \
-    libpcre2-8-0 \
-    libxml2-tools \
-    lua \
-    lua-devel \
-    luarocks \
-    m4 \
+    suitesparse \
+    suitesparse-dev \
+    clang-libs \
+    curl \
+    curl-dev \
+    ncurses5 \
+    libressl \
+    libressl-dev \
+    pcre2 \
+    libxml2-utils \
+    lua5.3 \
+    lua5.3-dev \
+    luarocks5.3 \
     mono \
     nodejs \
-    npm \
     perl \
-    perl-Perl-Critic \
-    php \
+    php7 \
     php7-pear \
-    php7-tokenizer \
-    php7-xmlwriter \
     python3 \
-    python3-dbm \
-    python3-gobject \
-    python3-pip \
-    python3-setuptools \
-    R-base \
+    py-gdbm \
+    py-gobject3 \
+    R \
+    R-dev \
     ruby \
-    ruby-common \
-    ruby-devel \
-    ruby2.2-rubygem-bundler \
-    ShellCheck \
-    subversion \
+    ruby-dev \
+    ruby-bundler \
     sudo \
-    suitesparse-devel \
     tar \
-    texlive-chktex \
     unzip \
-    wget && \
-  # Clear zypper cache
-  zypper clean -a
+    wget \
+    ghc-bootstrap \
+    libffi-dev
 
 # Coala setup and python deps
 RUN pip3 install --upgrade pip
@@ -111,8 +91,7 @@ RUN wget -q https://storage.googleapis.com/dart-archive/channels/stable/release/
   rm -rf /root/dart-sdk.zip
 
 # GO setup
-RUN source /etc/profile.d/go.sh \
-  && go get -u github.com/golang/lint/golint \
+RUN go get -u github.com/golang/lint/golint \
   && go get -u golang.org/x/tools/cmd/goimports \
   && go get -u sourcegraph.com/sqs/goreturns \
   && go get -u golang.org/x/tools/cmd/gotype \
@@ -148,7 +127,7 @@ RUN source /etc/profile.d/go.sh \
 RUN julia -e 'Pkg.add("Lint")'
 
 # Lua commands
-RUN luarocks install luacheck
+RUN luarocks-5.3 install luacheck
 
 # NPM setup
 # Extract dependencies from coala-bear package.json
