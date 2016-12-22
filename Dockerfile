@@ -2,7 +2,7 @@ FROM alpine:edge
 MAINTAINER Fabian Neuschmidt fabian@neuschmidt.de
 
 # Set environment variables
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en GOPATH=/root/go
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en GOPATH=/root/go PATH=$PATH:$GOPATH/bin
 
 # Update repositories
 RUN apk update --no-cache --no-progress && \
