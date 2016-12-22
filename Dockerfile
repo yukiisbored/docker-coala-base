@@ -9,7 +9,7 @@ RUN apk update --no-cache --no-progress && \
   # Upgrade distribution
   apk upgrade --no-cache --no-progress && \
   # Install dependencies and linters
-  apk add --no-cache --no-progress python3 git go && \
+  apk add --no-cache --no-progress build-base python3 git go && \
   # Upgrade pip
   pip3 install --upgrade pip && \
   # Install Go linters
@@ -23,7 +23,7 @@ RUN apk update --no-cache --no-progress && \
   git clone https://github.com/coala/coala.git && \
   cd coala && \
   pip3 install -r requirements.txt -r test-requirements.txt && \
-  python3 -m pytest && \
+  python3 -m pytest --cov && \
   pip3 uninstall -r test-requirements.txt && \
   pip3 install -e . && \
   cd / && \
