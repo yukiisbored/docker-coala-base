@@ -1,15 +1,15 @@
 FROM alpine:edge
 MAINTAINER Fabian Neuschmidt fabian@neuschmidt.de
 
-# Set the locale
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en
+# Set environment variables
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en GOPATH=/root/go
 
 # Update repositories
 RUN apk update --no-cache --no-progress && \
   # Upgrade distribution
   apk upgrade --no-cache --no-progress && \
-  # Install Python 3
-  apk add --no-cache --no-progress python3 git && \
+  # Install dependencies and linters
+  apk add --no-cache --no-progress python3 git go && \
   # Upgrade pip
   pip3 install --upgrade pip && \
   # Install coala
@@ -31,5 +31,11 @@ RUN apk update --no-cache --no-progress && \
   pip3 install -e . && \
   cd / && \
   rm -rf coala-quickstart && \
+  # Install Go linters
+  go get -u github.com/golang/lint/golint && \
+  go get -u golang.org/x/tools/cmd/goimports && \
+  go get -u sourcegraph.com/sqs/goreturns && \
+  go get -u golang.org/x/tools/cmd/gotype && \
+  go get -u github.com/kisielk/errcheck && \
   # Remove unneeded packages
   apk del git
