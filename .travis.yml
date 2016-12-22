@@ -3,12 +3,9 @@ sudo: required
 services:
   - docker
 
-install:
+script:
   - docker build -f Dockerfile -t coala-docker .
   - docker images
-
-script:
-  - echo Nothing.
 
 notifications:
   email: false
