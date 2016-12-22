@@ -24,7 +24,7 @@ RUN apk update --no-cache --no-progress && \
   cd coala && \
   pip3 install -r requirements.txt -r test-requirements.txt && \
   python3 -m pytest --cov && \
-  pip3 uninstall -r test-requirements.txt && \
+  pip3 uninstall -y -r test-requirements.txt && \
   pip3 install -e . && \
   cd / && \
   rm -rf coala && \
@@ -33,7 +33,7 @@ RUN apk update --no-cache --no-progress && \
   cd coala-bears && \
   pip3 install -r requirements.txt -r test-requirements.txt && \
   python3 -m pytest && \
-  pip3 uninstall -r test-requirements.txt && \
+  pip3 uninstall -y -r test-requirements.txt && \
   pip3 install -e . && \
   cd / && \
   rm -rf coala-bears && \
@@ -42,7 +42,7 @@ RUN apk update --no-cache --no-progress && \
   cd coala-quickstart && \
   pip3 install -r requirements.txt -r test-requirements.txt && \
   python3 -m pytest && \
-  pip3 uninstall -r test-requirements.txt && \
+  pip3 uninstall -y -r test-requirements.txt && \
   pip3 install -e . && \
   cd / && \
   rm -rf coala-quickstart && \
