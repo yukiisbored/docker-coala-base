@@ -12,6 +12,10 @@ RUN apk update --no-cache --no-progress && \
   apk add --no-cache --no-progress build-base python3 git go && \
   # Upgrade pip
   pip3 install --upgrade pip && \
+  # Install NTLK data
+  pip3 install ntlk && \
+  python3 -m nltk.downloader punkt maxent_treebank_pos_tagger \
+             averaged_perceptron_tagger && \
   # Install Go linters
   go get -u github.com/golang/lint/golint && \
   go get -u golang.org/x/tools/cmd/goimports && \
