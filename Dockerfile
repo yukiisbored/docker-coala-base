@@ -47,4 +47,4 @@ RUN apk update --no-cache --no-progress && \
   cd / && \
   rm -rf coala-quickstart && \
   # Remove unneeded packages
-  apk del git
+  apk del git build-base
