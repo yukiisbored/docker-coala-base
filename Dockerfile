@@ -1,77 +1,65 @@
-FROM opensuse:tumbleweed
+FROM ubuntu:latest
 MAINTAINER Fabian Neuschmidt fabian@neuschmidt.de
 
-# Set the locale
-ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en PATH=$PATH:/root/pmd-bin-5.4.1/bin:/root/dart-sdk/bin
+# Set the environment variables
+ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en PATH=$PATH:/root/pmd-bin-5.4.1/bin \
+  # Declare this environment is noninteractive for APT
+  DEBIANFRONTEND=noninteractive \
+  # Declare Go variables
+  GOROOT=/usr/lib/go GOPATH=/usr/share/go/contrib GOBIN=/usr/bin
 
-# Add packaged flawfinder
-RUN zypper addrepo http://download.opensuse.org/repositories/home:illuusio/openSUSE_Tumbleweed/home:illuusio.repo && \
-  # Add repos for suitesparse and luarocks
-  zypper addrepo http://download.opensuse.org/repositories/home:stecue/openSUSE_Tumbleweed/home:stecue.repo && \
-  zypper addrepo -f \
-    http://download.opensuse.org/repositories/devel:/languages:/lua/openSUSE_Factory/ \
-    devel:languages:lua && \
-  # Use Leap for nodejs
-  zypper addrepo http://download.opensuse.org/repositories/devel:languages:nodejs/openSUSE_Leap_42.2/devel:languages:nodejs.repo && \
-  # Add repo for rubygem-bundler
-  zypper addrepo http://download.opensuse.org/repositories/home:AtastaChloeD:ChiliProject/openSUSE_Factory/home:AtastaChloeD:ChiliProject.repo && \
-  # Package dependencies
-  zypper --no-gpg-checks --non-interactive install \
-    bzr \
-    cppcheck \
-    curl \
-    espeak \
-    expect \
-    flawfinder \
-    gcc-c++ \
-    gcc-fortran \
-    git \
-    go \
-    gsl \
-    mercurial \
-    hlint \
-    indent \
-    java-1_8_0-openjdk \
-    julia \
-    libcholmod-3_0_6 \
-    libclang3_8 \
-    libcurl-devel \
-    libncurses5 \
-    libopenssl-devel \
-    libpcre2-8-0 \
-    libxml2-tools \
-    lua \
-    lua-devel \
-    luarocks \
-    m4 \
-    nodejs \
-    npm \
-    patch \
-    perl \
-    perl-Perl-Critic \
-    php \
-    php7-pear \
-    php7-tokenizer \
-    php7-xmlwriter \
-    python3 \
-    python3-dbm \
-    python3-gobject \
-    python3-pip \
-    python3-setuptools \
-    R-base \
-    ruby \
-    ruby-devel \
-    ruby2.2-rubygem-bundler \
-    ShellCheck \
-    subversion \
-    sudo \
-    suitesparse-devel \
-    tar \
-    texlive-chktex \
-    unzip \
-    wget && \
-  # Clear zypper cache
-  zypper clean -a
+# Generate locales
+RUN locale-gen en_US.UTF-8
+
+# Add Dart Repo
+RUN curl https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+  curl https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_stable.list > \
+    /etc/apt/sources.list.d/dart_stable.list && \
+  # Update repositories
+  apt-get update
+
+# Install linters and other dependencies
+RUN apt-get install -y \
+      bzr \
+      cppcheck \
+      curl \
+      clang \
+      dart \
+      espeak \
+      expect \
+      flawfinder \
+      g++ \
+      gfortran \
+      git \
+      golang \
+      gsl-bin \
+      mercurial \
+      hlint \
+      indent \
+      openjdk-8-jre \
+      julia \
+      libcurl4-openssl-dev \
+      libssl-dev \
+      libxml2-utils \
+      lua-check \
+      m4 \
+      npm \
+      patch \
+      libperl-critic-perl \
+      php-codesniffer \
+      python3-dev \
+      python3-pip \
+      r-base-core \
+      bundler \
+      shellcheck \
+      subversion \
+      sudo \
+      libsuitesparse-dev \
+      tar \
+      chktex \
+      unzip \
+      wget && \
+    apt-get clean
 
 # Coala setup and python deps
 RUN pip3 install --upgrade pip
@@ -99,16 +87,8 @@ RUN git clone https://github.com/coala/coala-quickstart.git && \
   pip3 install -e . && \
   cd ..
 
-RUN pear install PHP_CodeSniffer
-
-# Dart Lint setup
-RUN wget -q https://storage.googleapis.com/dart-archive/channels/stable/release/1.14.2/sdk/dartsdk-linux-x64-release.zip -O /root/dart-sdk.zip && \
-  unzip -n /root/dart-sdk.zip -d ~/ && \
-  rm -rf /root/dart-sdk.zip
-
 # GO setup
-RUN source /etc/profile.d/go.sh \
-  && go get -u github.com/golang/lint/golint \
+RUN go get -u github.com/golang/lint/golint \
   && go get -u golang.org/x/tools/cmd/goimports \
   && go get -u sourcegraph.com/sqs/goreturns \
   && go get -u golang.org/x/tools/cmd/gotype \
@@ -143,9 +123,6 @@ RUN source /etc/profile.d/go.sh \
 # Julia setup
 RUN julia -e 'Pkg.add("Lint")'
 
-# Lua commands
-RUN luarocks install luacheck
-
 # NPM setup
 # Extract dependencies from coala-bear package.json
 # typescript is a peer dependency
@@ -153,7 +130,8 @@ RUN npm install -g typescript \
     $(sed -ne '/~/{s/^[^"]*"//;s/".*"~/@/;s/",*//;p}' coala-bears/package.json)
 
 # Nltk data
-RUN python3 -m nltk.downloader punkt maxent_treebank_pos_tagger averaged_perceptron_tagger
+RUN pip3 install nltk && \
+  python3 -m nltk.downloader punkt maxent_treebank_pos_tagger averaged_perceptron_tagger
 
 # PMD setup
 RUN wget -q https://github.com/pmd/pmd/releases/download/pmd_releases%2F5.4.1/pmd-bin-5.4.1.zip -O /root/pmd.zip && \
@@ -175,4 +153,3 @@ RUN curl -fsSL https://tailor.sh/install.sh | sed 's/read -r CONTINUE < \/dev\/t
 # ADD http://downloads.sourceforge.net/project/fpgalibre/bakalint/0.4.0/bakalint-0.4.0.tar.gz?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Ffpgalibre%2Ffiles%2Fbakalint%2F0.4.0%2F&ts=1461844926&use_mirror=netcologne /root/bl.tar.gz
 # RUN tar xf /root/bl.tar.gz -C /root/
 # ENV PATH=$PATH:/root/bakalint-0.4.0
-
