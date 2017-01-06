@@ -20,6 +20,7 @@ script:
     "
   - /bin/sh -c "! docker run coala-docker"
   - docker run --volume=$(pwd)/.ci:/work --workdir=/work coala-docker
-  - [[ -f ./.ci/.coafile ]]
+  - ls -lah ./.ci/*
+  - ls -lah ./.ci/.coafile
 notifications:
   email: false
